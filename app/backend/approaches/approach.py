@@ -347,9 +347,10 @@ class Approach(ABC):
             qualified_documents = [
                 doc
                 for doc in documents
-                if (
-                    (doc.score or 0) >= (minimum_search_score or 0)
-                    and (doc.reranker_score or 0) >= (minimum_reranker_score or 0)
+                if (doc.score or 0) >= (minimum_search_score or 0)
+                and (
+                    doc.reranker_score is None
+                    or doc.reranker_score >= (minimum_reranker_score or 0)
                 )
             ]
 
