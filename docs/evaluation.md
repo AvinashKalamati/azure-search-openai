@@ -64,11 +64,36 @@ The options are:
 * `numquestions`: The number of questions to generate. We suggest at least 200.
 * `numsearchdocs`: The number of documents (chunks) to retrieve from your search index. You can leave off the option to fetch all documents, but that will significantly increase time it takes to generate ground truth data. You may want to at least start with a subset.
 * `kgfile`: An existing RAGAS knowledge base JSON file, which is usually `ground_truth_kg.json`. You may want to specify this if you already created a knowledge base and just want to tweak the question generation steps.
-* `groundtruthfile`: The file to write the generated ground truth answwers. By default, this is `evals/ground_truth.jsonl`.
+* `sourcefile`: Only generate questions from chunks of this indexed file, for example `--sourcefile employee_handbook.pdf`. Use the file name as it appears in the index, without a folder path. Repeat the option to process several files; each file is processed separately. See [Generate ground truth for a single document](#generate-ground-truth-for-a-single-document).
+* `reusekg`: With `sourcefile`, reuse that file's saved knowledge graph instead of rebuilding it.
+* `remove`: Delete a file's questions and knowledge graph, and drop its questions from `evals/ground_truth.jsonl`. Use this after removing a document from the index.
 
 🕰️ This may take a long time, possibly several hours, depending on the size of the search index.
 
 Review the generated data in `evals/ground_truth.jsonl` after running that script, removing any question/answer pairs that don't seem like realistic user input.
+
+### Generate ground truth for a single document
+
+When you add a document, you can generate questions for just that document instead of the whole index:
+
+```bash
+python evals/generate_ground_truth.py --sourcefile employee_handbook.pdf --numquestions=10
+```
+
+Each document gets its own files in `evals/ground_truth_by_file/`, named after the indexed file:
+
+* `employee_handbook.pdf.jsonl`: the generated questions and answers. Running the command again for the same file replaces this file.
+* `employee_handbook.pdf.kg.json`: the RAGAS knowledge graph built from that file's chunks. Pass `--reusekg` to generate new questions from it without rebuilding the graph.
+
+These questions are not added to `evals/ground_truth.jsonl`. To evaluate them, pass the file or the whole folder to `run_evaluate.py` with `--testdata`.
+
+When you remove a document from the index, remove its ground truth too:
+
+```bash
+python evals/generate_ground_truth.py --remove employee_handbook.pdf
+```
+
+This deletes both files for that document and drops any question in `evals/ground_truth.jsonl` whose answer cites it.
 
 ## Run bulk evaluation
 
@@ -86,6 +111,7 @@ The options are:
 * `numquestions`: The number of questions to evaluate. By default, this is all questions in the ground truth data.
 * `resultsdir`: The directory to write the evaluation results. By default, this is a timestamped folder in `evals/results`. This option can also be specified in `evaluate_config.json`.
 * `targeturl`: The URL of the running application to evaluate. By default, this is `http://localhost:50505`. This option can also be specified in `evaluate_config.json`.
+* `testdata`: The questions to evaluate, overriding `testdata_path` in `evaluate_config.json`. Pass a `.jsonl` file, such as `evals/ground_truth_by_file/employee_handbook.pdf.jsonl`, or a folder to use every `.jsonl` file in it, such as `evals/ground_truth_by_file`.
 
 🕰️ This may take a long time, possibly several hours, depending on the number of ground truth questions, the TPM capacity of the evaluation model, and the number of LLM-based metrics requested.
 

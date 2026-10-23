@@ -57,6 +57,8 @@ If necessary, edit this file to ensure it accurately reflects the current state 
     * app/frontend/src/pages: Contains the main pages of the application
 * infra: Contains the Bicep templates for provisioning Azure resources.
 * evals: Contains evaluation configs, datasets, and results.
+  * evals/ground_truth_by_file: Per-document ground truth questions (`<file>.jsonl`) and RAGAS knowledge graphs (`<file>.kg.json`), written by `generate_ground_truth.py --sourcefile`.
+  * evals/evaltools/ground_truth_files.py: Naming, writing, loading, and removal of per-document ground truth files.
   * evals/results: Contains raw per-run eval output folders. Use descriptive setup-based names for repeated runs, such as `gpt54-low-top5-run1`.
   * evals/results_summaries: Contains derived grouped summaries such as `baseline.json` and `baseline.md`.
   * evals/results_comparisons: Reserved for derived candidate-vs-baseline comparison artifacts.

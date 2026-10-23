@@ -11,6 +11,7 @@ from azure.ai.evaluation import AzureOpenAIModelConfiguration
 from rich.progress import track
 
 from .. import service_setup
+from ..ground_truth_files import load_testdata
 from .evaluate_metrics import metrics_by_name
 
 logger = logging.getLogger("evaltools")
@@ -92,11 +93,6 @@ def truncate_for_log(s: str, max_length=50):
     return s if len(s) < max_length else s[:max_length] + "..."
 
 
-def load_jsonl(path: Path) -> list[dict]:
-    with open(path, encoding="utf-8") as f:
-        return [json.loads(line) for line in f.readlines()]
-
-
 def run_evaluation(
     openai_config: AzureOpenAIModelConfiguration,
     testdata_path: Path,
@@ -113,7 +109,7 @@ def run_evaluation(
     target_parameters = target_parameters or {}
     requested_metrics = requested_metrics or []
     logger.info("Running evaluation using data from %s", testdata_path)
-    testdata = load_jsonl(testdata_path)
+    testdata = load_testdata(testdata_path)
     if num_questions:
         logger.info("Limiting evaluation to %s questions", num_questions)
         testdata = testdata[:num_questions]
@@ -246,6 +242,7 @@ def run_evaluate_from_config(
     openai_config=None,
     model=None,
     azure_credential=None,
+    testdata_path=None,
 ):
     config_path = working_dir / Path(config_path)
     logger.info("Running evaluation from config %s", config_path)
@@ -258,7 +255,7 @@ def run_evaluate_from_config(
 
     evaluation_run_complete = run_evaluation(
         openai_config=openai_config or service_setup.get_openai_config(),
-        testdata_path=working_dir / config["testdata_path"],
+        testdata_path=testdata_path or working_dir / config["testdata_path"],
         results_dir=results_dir,
         target_url=target_url or config["target_url"],
         target_parameters=config.get("target_parameters", {}),

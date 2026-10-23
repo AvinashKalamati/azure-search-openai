@@ -24,6 +24,12 @@ if __name__ == "__main__":
     parser.add_argument("--targeturl", type=str, help="Specify the target URL.")
     parser.add_argument("--resultsdir", type=Path, help="Specify the results directory.")
     parser.add_argument("--numquestions", type=int, help="Specify the number of questions.")
+    parser.add_argument(
+        "--testdata",
+        type=Path,
+        help="Questions to evaluate: a .jsonl file, or a folder whose .jsonl files are all used. "
+        "Overrides testdata_path in evaluate_config.json.",
+    )
 
     args = parser.parse_args()
 
@@ -49,4 +55,5 @@ if __name__ == "__main__":
         openai_config=openai_config,
         model=os.environ["AZURE_OPENAI_EVAL_MODEL"],
         azure_credential=azure_credential,
+        testdata_path=args.testdata,
     )
